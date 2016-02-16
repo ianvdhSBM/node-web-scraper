@@ -10,12 +10,16 @@ request.get(url, function(error, response, body) {
     var cheerio = require('cheerio'),
       $ = cheerio.load(body);
     // console.log($('td code').text());
-    $('tr').slice(32, 40).each (function() {
+    $('tr').each (function() {
+      var regEx = /(?:\.([^.]+))?$/;
       var permissions = $('code', this).first().text();
       var link = $('a', this).attr('href');
-      console.log(permissions);
-      console.log(link);
+      // var ext = regEx.exec(link);
+      var ext = link.substr(link.lastIndexOf('.') + 1);
+      if (ext.length > 3) {
+        ext = "folder"
+      }
+      console.log(ext);
     })
-
   }
 });
