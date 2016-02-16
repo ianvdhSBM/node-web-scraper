@@ -1,25 +1,38 @@
 var request = require('request');
-var cheerio = require('cheerio')
+var cheerio = require('cheerio');
+var json2csv = require('json2csv');
+var fs = require('fs');
 
 var url = process.argv[2];
+var fields = ['permissions', 'link', 'ext']
 
-var rows = [];
 
 request.get(url, function(error, response, body) {
   if (!error && response.statusCode == 200) {
-    var cheerio = require('cheerio'),
-      $ = cheerio.load(body);
-    // console.log($('td code').text());
+    $ = cheerio.load(body);
+
+    var finalData = []
+
     $('tr').each (function() {
-      var regEx = /(?:\.([^.]+))?$/;
       var permissions = $('code', this).first().text();
       var link = $('a', this).attr('href');
-      // var ext = regEx.exec(link);
       var ext = link.substr(link.lastIndexOf('.') + 1);
-      if (ext.length > 3) {
-        ext = "folder"
+
+      if (ext === "/") {
+        ext = "parent folder";
+      }else if (ext.length > 3) {
+        ext = "folder";
       }
-      console.log(ext);
-    })
+
+      finalData.push({permissions, link, ext})
+    });
+
+    json2csv({ data: finalData, fields: fields }, function(err, csv) {
+      if (err) {console.log(err)};
+      fs.writeFile('files.csv', csv, function(err) {
+        if (err) {console.log(err)};
+        if (!err) {console.log("file saved")};
+      })
+    });
   }
 });
